@@ -13,9 +13,62 @@
     console.log(`${id} is copied`)
   }
 
-  function onClickDownload(): void {
+  function onClickDownloadContact(): void {
     generateVCard(contact)
   }
+  
+  type ContactItem = {
+    field: ContactField
+    iconSrc: string
+    id: string
+  }
+
+  const contactItems: ContactItem[] = [
+    { field: 'email', iconSrc: '/icons/email.svg', id: '1' },
+    { field: 'cellPhone', iconSrc: '/icons/phone.svg', id: '2' },
+    { field: 'url', iconSrc: '/icons/website.svg', id: '3' },
+    { field: 'socialUrls.linkedIn', iconSrc: '/icons/linkedin.svg', id: '4' },
+    { field: 'socialUrls.facebook', iconSrc: '/icons/facebook.svg', id: '5' },
+    { field: 'socialUrls.instagram', iconSrc: '/icons/instagram.svg', id: '6' },
+    { field: 'socialUrls.twitter', iconSrc: '/icons/twitter.svg', id: '7' },
+    { field: 'socialUrls.line', iconSrc: '/icons/line.svg', id: '8' }
+  ];
+  
+  type IsPlainObject<T> =
+  T extends object
+    ? T extends Function | Date | readonly any[] ? false : true
+    : false;
+
+  type ObjectKeyChaining<T> = {
+    [K in keyof T & string]:
+      IsPlainObject<NonNullable<T[K]>> extends true
+        ? `${K}.${ObjectKeyChaining<NonNullable<T[K]>>}`
+        : K
+  }[keyof T & string];
+
+  type ContactField = ObjectKeyChaining<Contact>;
+
+  type DeepObjectType<T, P extends string> =
+    P extends keyof T
+      ? T[P]
+      : P extends `${infer K}.${infer R}`
+        ? K extends keyof T
+          ? IsPlainObject<NonNullable<T[K]>> extends true
+            ? DeepObjectType<NonNullable<T[K]>, R>
+            : never
+          : never
+        : never;
+
+  function getValue(contact: Contact, field: ContactField): DeepObjectType<Contact, ContactField> {
+    const parts = field.split(".");
+    let value: unknown = contact;
+    for (const part of parts) {
+      if (value === null || value === undefined) return undefined;
+      value = (value as Record<string, unknown>)?.[part];
+    }
+    return value as DeepObjectType<Contact, ContactField>;
+  }
+
 </script>
 
 <!-- ############################################################################################################## -->
@@ -41,58 +94,20 @@
   {#if contact.role}
     <p>{contact.role}</p>
   {/if}
-  <button class="download-contact-btn" onclick={onClickDownload}>Download Contact</button>
+  <button class="download-contact-btn" onclick={onClickDownloadContact}>Download Contact</button>
 
   <div class="info-container">
-    {#if contact.email}
-      <Item iconSrc={'/icons/email.svg'} id="1" value={contact.email} copy={onClickCopy} />
-    {/if}
-    {#if contact.cellPhone}
-      <Item iconSrc={'/icons/phone.svg'} id="2" value={contact.cellPhone} copy={onClickCopy} />
-    {/if}
-    {#if contact.url}
-      <Item iconSrc={'/icons/website.svg'} id="3" value={contact.url} copy={onClickCopy} />
-    {/if}
-    {#if contact.socialUrls?.['linkedin']}
-      <Item
-        iconSrc={'/icons/linkedin.svg'}
-        id="4"
-        value={contact.socialUrls['linkedin']}
-        copy={onClickCopy}
-      />
-    {/if}
-    {#if contact.socialUrls?.['facebook']}
-      <Item
-        iconSrc={'/icons/facebook.svg'}
-        id="5"
-        value={contact.socialUrls['facebook']}
-        copy={onClickCopy}
-      />
-    {/if}
-    {#if contact.socialUrls?.['instagram']}
-      <Item
-        iconSrc={'/icons/instagram.svg'}
-        id="6"
-        value={contact.socialUrls['instagram']}
-        copy={onClickCopy}
-      />
-    {/if}
-    {#if contact.socialUrls?.['twitter']}
-      <Item
-        iconSrc={'/icons/twitter.svg'}
-        id="7"
-        value={contact.socialUrls['twitter']}
-        copy={onClickCopy}
-      />
-    {/if}
-    {#if contact.socialUrls?.['line']}
-      <Item
-        iconSrc={'/icons/line.svg'}
-        id="8"
-        value={contact.socialUrls['line']}
-        copy={onClickCopy}
-      />
-    {/if}
+    {#each contactItems as item}
+      {@const value = getValue(contact, item.field)?.toString()}
+      {#if value}
+        <Item
+          iconSrc={item.iconSrc}
+          id={item.id}
+          value={value ?? ''}
+          copy={onClickCopy}
+        ></Item>
+      {/if}
+    {/each}
   </div>
 </div>
 

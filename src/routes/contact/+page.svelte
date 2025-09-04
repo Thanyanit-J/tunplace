@@ -14,7 +14,7 @@
     email: 'thanyanit.jon@gmail.com',
     url: 'https://tunplace.com',
     socialUrls: {
-      linkedin: 'https://linkedin.com/in/thanyanit-jon'
+      linkedIn: 'https://linkedin.com/in/thanyanit-jon'
     }
   }
 </script>
