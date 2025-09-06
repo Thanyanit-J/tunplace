@@ -31,7 +31,7 @@
     { field: 'socialUrls.facebook', iconSrc: '/icons/facebook.svg', id: '5' },
     { field: 'socialUrls.instagram', iconSrc: '/icons/instagram.svg', id: '6' },
     { field: 'socialUrls.twitter', iconSrc: '/icons/twitter.svg', id: '7' },
-    { field: 'socialUrls.line', iconSrc: '/icons/line.svg', id: '8' }
+    { field: 'socialUrls.LINE', iconSrc: '/icons/line.svg', id: '8' }
   ];
   
   type IsPlainObject<T> =
@@ -159,7 +159,7 @@
     gap: 10px;
     margin: 20px;
   }
-  
+
   .item-container {
     display: grid;
     grid-template-columns: auto 1fr auto;
