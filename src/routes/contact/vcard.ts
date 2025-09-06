@@ -155,7 +155,8 @@ export function generateVCard(contact: Contact) {
     }
   }
 
-  vCard.version = contact.version ?? '4.0'
+  // Set default version to v2.1 because most Android only support vCard up to v2.1
+  vCard.version = contact.version ?? '2.1'
 
   toFile(vCard.getFormattedString())
 }
