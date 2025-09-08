@@ -1,34 +1,187 @@
-import vCardsJS from 'vcards-js'
+type VCardVersion = '2.1' | '3.0' | '4.0'
+
+export class VCard {
+  private version: VCardVersion = '2.1'
+  private readonly fields: string[] = []
+
+  constructor(version?: VCardVersion) {
+    if (version) {
+      this.setVersion(version)
+    }
+  }
+
+  setVersion(version: string) {
+    if (version === '2.1' || version === '3.0' || version === '4.0') {
+      this.version = version
+    } else {
+      throw new Error('Invalid vCard version. Only 2.1, 3.0, or 4.0 are allowed.')
+    }
+  }
+
+  addName(last: string, first: string, middle: string, prefix: string, suffix: string) {
+    this.fields.push(`N:${last};${first};${middle};${prefix};${suffix}`)
+    this.fields.push(`FN:${[prefix, first, middle, last, suffix].filter(Boolean).join(' ')}`)
+  }
+
+  addUID(uid: string) {
+    this.fields.push(`UID:${uid}`)
+  }
+
+  addCompany(org: string) {
+    this.fields.push(`ORG:${org}`)
+  }
+
+  addPhoto(base64: string, mediaType: string) {
+    if (this.version === '2.1') {
+      this.fields.push(`PHOTO;${mediaType};ENCODING=BASE64:${base64}`)
+    } else if (this.version === '3.0') {
+      this.fields.push(`PHOTO;TYPE=${mediaType};ENCODING=b:${base64}`)
+    } else if (this.version === '4.0') {
+      this.fields.push(`PHOTO;ENCODING=BASE64;TYPE=${mediaType}:${base64}`)
+    }
+  }
+
+  addPhotoURL(url: string) {
+    // Assume JPEG for demonstration, but you may want to pass mediaType
+    const mediaType = 'JPEG'
+    if (this.version === '2.1') {
+      this.fields.push(`PHOTO;${mediaType}:${url}`)
+    } else if (this.version === '3.0') {
+      this.fields.push(`PHOTO;TYPE=${mediaType};VALUE=URI:${url}`)
+    } else if (this.version === '4.0') {
+      this.fields.push(`PHOTO;MEDIATYPE=image/jpeg:${url}`)
+    }
+  }
+
+  addPhoneNumber(number: string, type?: string) {
+    this.fields.push(`TEL${type ? ';TYPE=' + type : ''}:${number}`)
+  }
+
+  addBirthday(date: string) {
+    this.fields.push(`BDAY:${date}`)
+  }
+
+  addJobtitle(title: string) {
+    this.fields.push(`TITLE:${title}`)
+  }
+
+  addURL(url: string, type?: string) {
+    this.fields.push(`URL${type && this.version !== '2.1' ? ';TYPE=' + type : ''}:${url}`)
+  }
+
+  addNote(note: string) {
+    this.fields.push(`NOTE:${note}`)
+  }
+
+  addRole(role: string) {
+    this.fields.push(`ROLE:${role}`)
+  }
+
+  addEmail(email: string, type?: string) {
+    this.fields.push(`EMAIL${type ? ';TYPE=' + type : ''}:${email}`)
+  }
+
+  addLogo(base64: string, mediaType: string) {
+    if (this.version === '2.1') {
+      this.fields.push(`LOGO;${mediaType};ENCODING=BASE64:${base64}`)
+    } else if (this.version === '3.0') {
+      this.fields.push(`LOGO;TYPE=${mediaType};ENCODING=b:${base64}`)
+    } else if (this.version === '4.0') {
+      this.fields.push(`LOGO;ENCODING=BASE64;TYPE=${mediaType}:${base64}`)
+    }
+  }
+
+  addLogoURL(url: string) {
+    // Assume JPEG for demonstration, but you may want to pass mediaType
+    const mediaType = 'JPEG'
+    if (this.version === '2.1') {
+      this.fields.push(`LOGO;${mediaType}:${url}`)
+    } else if (this.version === '3.0') {
+      this.fields.push(`LOGO;TYPE=${mediaType};VALUE=URI:${url}`)
+    } else if (this.version === '4.0') {
+      this.fields.push(`LOGO;MEDIATYPE=image/jpeg:${url}`)
+    }
+  }
+
+  addAddress(
+    label?: string,
+    ext?: string,
+    street?: string,
+    city?: string,
+    state?: string,
+    postal?: string,
+    country?: string,
+    type?: string
+  ) {
+    this.fields.push(
+      `ADR${type ? ';TYPE=' + type : ''}:$${label};${ext};${street};${city};${state};${postal};${country}`
+    )
+  }
+
+  buildVCard(bypassRequiredFields = false): string {
+    if (!bypassRequiredFields) {
+      const hasN = this.fields.some(field => field.startsWith('N:'))
+      if (!hasN) {
+        throw new Error('N field is required for vCard')
+      }
+
+      if (this.version === '3.0' || this.version === '4.0') {
+        const hasFN = this.fields.some(field => field.startsWith('FN:'))
+        if (!hasFN) {
+          throw new Error('FN field is required for vCard version 3.0 and 4.0')
+        }
+      }
+    }
+
+    return [`BEGIN:VCARD`, `VERSION:${this.version}`, ...this.fields, `END:VCARD`].join('\n')
+  }
+}
+
+
+type ContactAddress = Partial<{
+  label: string
+  street: string
+  city: string
+  stateProvince: string
+  postalCode: string
+  countryRegion: string
+}>
+
+type ContactImage = {
+  url?: string
+  base64String?: string
+  mediaType: string
+  base64: false | true
+}
+
+type ContactPhone = {
+  value: string
+  label?: string
+}
+
+type ContactEmail = {
+  value: string
+  label?: string
+}
+
+type ContactFax = {
+  value: string
+  label?: string
+}
+
+type ContactUrl = {
+  value: string
+  label?: string
+}
 
 export type Contact = Partial<{
   uid: string
   birthday: Date
   anniversary: Date
-  cellPhone: string
-  pagerPhone: string
-  email: string
-  workEmail: string
-  otherEmail: string
   firstName: string
   formattedName: string
-  gender: 'M' | 'F'
-  homeAddress: Partial<{
-    label: string
-    street: string
-    city: string
-    stateProvince: string
-    postalCode: string
-    countryRegion: string
-  }>
-  homePhone: string
-  homeFax: string
+  gender: string
   lastName: string
-  logo: {
-    url?: string
-    base64String?: string
-    mediaType: string
-    base64: false | true
-  }
   middleName: string
   namePrefix: string
   nameSuffix: string
@@ -36,129 +189,151 @@ export type Contact = Partial<{
   note: string
   organization: string
   isOrganization: false | true
-  photo: {
-    url?: string
-    base64String?: string
-    mediaType: string
-    base64: false | true
-  }
   role: string
-  socialUrls: Partial<{
-    facebook: string
-    linkedIn: string
-    twitter: string
-    flickr: string
-    [custom: string]: string
-  }>
   source: string
   title: string
-  url: string
-  workUrl: string
-  workAddress: Partial<{
-    label: string
-    street: string
-    city: string
-    stateProvince: string
-    postalCode: string
-    countryRegion: string
-  }>
-  workPhone: string
-  workFax: string
-  otherPhone: string
   version: string
+
+  address: ContactAddress | ContactAddress[]
+  phone: string | string[] | ContactPhone | ContactPhone[]
+  fax: string | string[] | ContactFax | ContactFax[]
+  email: string | string[] | ContactEmail | ContactEmail[]
+  url: string | string[] | ContactUrl | ContactUrl[]
+  logo: ContactImage | ContactImage[]
+  photo: ContactImage | ContactImage[]
+
+  socialUrls: Partial<{
+    facebook: string | string[]
+    linkedIn: string | string[]
+    twitter: string | string[]
+    flickr: string | string[]
+    [custom: string]: string | string[]
+  }>
 }>
 
 export function generateVCard(contact: Contact) {
   if (!contact) return
 
-  const vCard = vCardsJS()
+  const vCard = new VCard()
 
-  // Set basic properties
-  if (contact.firstName) vCard.firstName = contact.firstName
-  if (contact.middleName) vCard.middleName = contact.middleName
-  if (contact.lastName) vCard.lastName = contact.lastName
-  if (contact.uid) vCard.uid = contact.uid
-  if (contact.organization) vCard.organization = contact.organization
+  // Add name
+  vCard.addName(
+    contact.lastName ?? '',
+    contact.firstName ?? '',
+    contact.middleName ?? '',
+    contact.namePrefix ?? '',
+    contact.nameSuffix ?? ''
+  )
 
-  // Link to image (you can replace with actual image data if needed)
-  if (contact.photo?.base64) {
-    if (contact.photo.base64String && contact.photo.mediaType)
-      vCard.photo.embedFromString(contact.photo.base64String, contact.photo.mediaType)
-  } else if (contact.photo?.url) {
-    if (contact.photo.url && contact.photo.mediaType)
-      vCard.photo.attachFromUrl(contact.photo.url, contact.photo.mediaType)
-  }
+  // Add UID
+  if (contact.uid) vCard.addUID(contact.uid)
 
-  if (contact.workPhone) vCard.workPhone = contact.workPhone
-  if (contact.birthday) vCard.birthday = new Date(contact.birthday)
-  if (contact.title) vCard.title = contact.title
-  if (contact.url) vCard.url = contact.url
-  if (contact.workUrl) vCard.workUrl = contact.workUrl
-  if (contact.note) vCard.note = contact.note
+  // Add organization
+  if (contact.organization) vCard.addCompany(contact.organization)
 
-  // Set other vitals
-  if (contact.nickname) vCard.nickname = contact.nickname
-  if (contact.namePrefix) vCard.namePrefix = contact.namePrefix
-  if (contact.nameSuffix) vCard.nameSuffix = contact.nameSuffix
-  if (contact.gender) vCard.gender = contact.gender
-  if (contact.anniversary) vCard.anniversary = new Date(contact.anniversary)
-  if (contact.role) vCard.role = contact.role
-
-  // Set other phone numbers
-  if (contact.homePhone) vCard.homePhone = contact.homePhone
-  if (contact.cellPhone) vCard.cellPhone = contact.cellPhone
-  if (contact.pagerPhone) vCard.pagerPhone = contact.pagerPhone
-
-  // Set fax/facsimile numbers
-  if (contact.homeFax) vCard.homeFax = contact.homeFax
-  if (contact.workFax) vCard.workFax = contact.workFax
-
-  // Set email addresses
-  if (contact.email) vCard.email = contact.email
-  if (contact.workEmail) vCard.workEmail = contact.workEmail
-
-  // Set logo
-  if (contact.logo?.base64) {
-    if (contact.logo.base64String && contact.logo.mediaType)
-      vCard.logo.embedFromString(contact.logo.base64String, contact.logo.mediaType)
-  } else if (contact.logo?.url) {
-    if (contact.logo.url && contact.logo.mediaType)
-      vCard.logo.attachFromUrl(contact.logo.url, contact.logo.mediaType)
-  }
-
-  // Set URL where the vCard can be found
-  if (contact.source) vCard.source = contact.source
-
-  // Set address information
-  if (contact.homeAddress) {
-    vCard.homeAddress.label = contact.homeAddress.label ?? 'Home'
-    vCard.homeAddress.street = contact.homeAddress.street ?? ''
-    vCard.homeAddress.city = contact.homeAddress.city ?? ''
-    vCard.homeAddress.stateProvince = contact.homeAddress.stateProvince ?? ''
-    vCard.homeAddress.postalCode = contact.homeAddress.postalCode ?? ''
-    vCard.homeAddress.countryRegion = contact.homeAddress.countryRegion ?? ''
-  }
-
-  if (contact.workAddress) {
-    vCard.workAddress.label = contact.workAddress.label ?? 'Work'
-    vCard.workAddress.street = contact.workAddress.street ?? ''
-    vCard.workAddress.city = contact.workAddress.city ?? ''
-    vCard.workAddress.stateProvince = contact.workAddress.stateProvince ?? ''
-    vCard.workAddress.postalCode = contact.workAddress.postalCode ?? ''
-    vCard.workAddress.countryRegion = contact.workAddress.countryRegion ?? ''
-  }
-
-  // Set social media URLs
-  if (contact.socialUrls) {
-    for (const [platform, url] of Object.entries(contact.socialUrls)) {
-      vCard.socialUrls[platform] = url ?? ''
+  // Add photo(s)
+  const photos = Array.isArray(contact.photo) ? contact.photo : contact.photo ? [contact.photo] : []
+  for (const photo of photos) {
+    if (photo.base64) {
+      if (photo.base64String && photo.mediaType)
+        vCard.addPhoto(photo.base64String, photo.mediaType)
+    } else if (photo.url) {
+      vCard.addPhotoURL(photo.url)
     }
   }
 
-  // Set default version to v2.1 because most Android only support vCard up to v2.1
-  vCard.version = contact.version ?? '2.1'
+  // Add logo(s)
+  const logos = Array.isArray(contact.logo) ? contact.logo : contact.logo ? [contact.logo] : []
+  for (const logo of logos) {
+    if (logo.base64) {
+      if (logo.base64String && logo.mediaType)
+        vCard.addLogo(logo.base64String, logo.mediaType)
+    } else if (logo.url) {
+      vCard.addLogoURL(logo.url)
+    }
+  }
 
-  toFile(vCard.getFormattedString())
+  // Add birthday
+  if (contact.birthday) vCard.addBirthday(contact.birthday.toISOString().slice(0, 10))
+
+  // Add title
+  if (contact.title) vCard.addJobtitle(contact.title)
+
+  // Add note
+  if (contact.note) vCard.addNote(contact.note)
+
+  // Add role
+  if (contact.role) vCard.addRole(contact.role)
+
+  // Add phone(s)
+  const phones = Array.isArray(contact.phone) ? contact.phone : contact.phone ? [contact.phone] : [];
+  for (const phone of phones) {
+    if (typeof phone === 'string') {
+      vCard.addPhoneNumber(phone);
+    } else if (phone && typeof phone === 'object' && 'value' in phone) {
+      vCard.addPhoneNumber(phone.value, phone.label);
+    }
+  }
+
+  // Add fax(s)
+  const faxes = Array.isArray(contact.fax) ? contact.fax : contact.fax ? [contact.fax] : [];
+  for (const fax of faxes) {
+    if (typeof fax === 'string') {
+      vCard.addPhoneNumber(fax, 'FAX');
+    } else if (fax && typeof fax === 'object' && 'value' in fax) {
+      vCard.addPhoneNumber(fax.value, fax.label ?? 'FAX');
+    }
+  }
+
+  // Add email(s)
+  const emails = Array.isArray(contact.email) ? contact.email : contact.email ? [contact.email] : [];
+  for (const email of emails) {
+    if (typeof email === 'string') {
+      vCard.addEmail(email);
+    } else if (email && typeof email === 'object' && 'value' in email) {
+      vCard.addEmail(email.value, email.label);
+    }
+  }
+
+  // Add url(s)
+  const urls = Array.isArray(contact.url) ? contact.url : contact.url ? [contact.url] : [];
+  for (const url of urls) {
+    if (typeof url === 'string') {
+      vCard.addURL(url);
+    } else if (url && typeof url === 'object' && 'value' in url) {
+      vCard.addURL(url.value, url.label);
+    }
+  }
+
+  // Add address(es)
+  const addresses = Array.isArray(contact.address) ? contact.address : contact.address ? [contact.address] : []
+  for (const address of addresses) {
+    vCard.addAddress(
+      address.label ?? '',
+      '',
+      address.street ?? '',
+      address.city ?? '',
+      address.stateProvince ?? '',
+      address.postalCode ?? '',
+      address.countryRegion ?? ''
+    )
+  }
+
+  // Add social media URLs
+  if (contact.socialUrls) {
+    for (const [platform, value] of Object.entries(contact.socialUrls)) {
+      if (Array.isArray(value)) {
+        for (const url of value) {
+          if (url) vCard.addURL(url, platform)
+        }
+      } else if (value) {
+        vCard.addURL(value, platform)
+      }
+    }
+  }
+
+  // Output vCard
+  toFile(vCard.buildVCard())
 }
 
 function toFile(vCard: string, filename: string = 'contact.vcf') {
