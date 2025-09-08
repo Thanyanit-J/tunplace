@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { generateVCard, type Contact } from './vcard'
+  import { generateVCard, type Contact } from './vcard.service'
 
   type vCardProps = {
     contact: Contact
@@ -25,7 +25,7 @@
 
   const contactItems: ContactItem[] = [
     { field: 'email', iconSrc: '/icons/email.svg', id: '1' },
-    { field: 'cellPhone', iconSrc: '/icons/phone.svg', id: '2' },
+    { field: 'phone', iconSrc: '/icons/phone.svg', id: '2' },
     { field: 'url', iconSrc: '/icons/website.svg', id: '3' },
     { field: 'socialUrls.linkedIn', iconSrc: '/icons/linkedin.svg', id: '4' },
     { field: 'socialUrls.facebook', iconSrc: '/icons/facebook.svg', id: '5' },
@@ -66,6 +66,11 @@
       if (value === null || value === undefined) return undefined;
       value = (value as Record<string, unknown>)?.[part];
     }
+    
+    if (typeof value === 'object' && value !== null && 'value' in value) {
+      return (value as { value: unknown }).value as DeepObjectType<Contact, ContactField>;
+    }
+    
     return value as DeepObjectType<Contact, ContactField>;
   }
 
@@ -77,10 +82,11 @@
 
 <div class="card">
   {#if contact.photo}
-    {#if contact.photo.base64}
-      <img src={contact.photo.base64String} alt="" class="profile-image" />
-    {:else}
-      <img src={contact.photo.url} alt="" class="profile-image" />
+    {@const photo = Array.isArray(contact.photo) ? contact.photo[0] : contact.photo}
+    {#if photo?.base64}
+      <img src={photo.base64String} alt="" class="profile-image" />
+    {:else if photo?.url}
+      <img src={photo.url} alt="" class="profile-image" />
     {/if}
   {/if}
   {#if contact.firstName}

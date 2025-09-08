@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Contact } from './vcard'
+  import type { Contact, ContactEmail } from './vcard.service'
   import Vcard from './vcard.svelte'
 
   let contact: Contact = {
@@ -11,8 +11,13 @@
       mediaType: 'image/webp',
       base64: false
     },
-    email: 'thanyanit.jon@gmail.com',
-    url: 'https://tunplace.com',
+    email: {
+      label: 'Main',
+      value: 'thanyanit.jon@gmail.com'
+    } satisfies ContactEmail,
+    url: {
+      value: 'https://tunplace.com'
+    },
     socialUrls: {
       linkedIn: 'https://linkedin.com/in/thanyanit-jon'
     }
