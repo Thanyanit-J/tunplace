@@ -7,10 +7,9 @@
 
   let { contact }: vCardProps = $props()
 
-  function onClickCopy(id: string, value: string): void {
+  function onClickCopy(value: string): void {
     navigator.clipboard.writeText(value)
     // TODO: Implement "{{item}} is copied" toast
-    console.log(`${id} is copied`)
   }
 
   function onClickDownloadContact(): void {
@@ -48,30 +47,34 @@
 
   type ContactField = ObjectKeyChaining<Contact>;
 
-  type DeepObjectType<T, P extends string> =
-    P extends keyof T
-      ? T[P]
-      : P extends `${infer K}.${infer R}`
-        ? K extends keyof T
-          ? IsPlainObject<NonNullable<T[K]>> extends true
-            ? DeepObjectType<NonNullable<T[K]>, R>
-            : never
-          : never
-        : never;
-
-  function getValue(contact: Contact, field: ContactField): DeepObjectType<Contact, ContactField> {
+  function getValue(contact: Contact, field: ContactField): string[] {
     const parts = field.split(".");
     let value: unknown = contact;
     for (const part of parts) {
-      if (value === null || value === undefined) return undefined;
+      if (value === null || value === undefined) return [];
       value = (value as Record<string, unknown>)?.[part];
     }
     
-    if (typeof value === 'object' && value !== null && 'value' in value) {
-      return (value as { value: unknown }).value as DeepObjectType<Contact, ContactField>;
+    if (value === null || value === undefined) return [];
+    
+    // Handle array values
+    if (Array.isArray(value)) {
+      return value.map(item => {
+        if (typeof item === 'string') return item;
+        if (typeof item === 'object' && item !== null && 'value' in item) {
+          return (item as { value: unknown }).value as string;
+        }
+        return String(item);
+      }).filter(Boolean);
     }
     
-    return value as DeepObjectType<Contact, ContactField>;
+    // Handle single values
+    if (typeof value === 'object' && value !== null && 'value' in value) {
+      const extractedValue = (value as { value: unknown }).value;
+      return extractedValue ? [String(extractedValue)] : [];
+    }
+    
+    return value ? [String(value)] : [];
   }
 
 </script>
@@ -104,14 +107,14 @@
 
   <div class="info-container">
     {#each contactItems as item}
-      {@const value = getValue(contact, item.field)?.toString()}
-      {#if value}
-        <div class="item-container">
+      {@const values = getValue(contact, item.field)}
+      {#each values as value, index}
+        <div class="item-container" id="{item.id}-{index}">
           <img src={item.iconSrc} alt="" class="item-icon" height="25px" />
           <div class="item-value">{value}</div>
-          <button class="item-copy-btn" onclick={() => onClickCopy(item.id, value)}>Copy</button>
+          <button class="item-copy-btn" onclick={() => onClickCopy(value)}>Copy</button>
         </div>
-      {/if}
+      {/each}
     {/each}
   </div>
 </div>
