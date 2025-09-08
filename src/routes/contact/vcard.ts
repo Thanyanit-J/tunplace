@@ -10,7 +10,7 @@ export class VCard {
     }
   }
 
-  setVersion(version: string) {
+  setVersion(version: VCardVersion) {
     if (version === '2.1' || version === '3.0' || version === '4.0') {
       this.version = version
     } else {
