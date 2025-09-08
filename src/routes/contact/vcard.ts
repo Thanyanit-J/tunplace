@@ -232,7 +232,12 @@ export function generateVCard(contact: Contact) {
   if (contact.organization) vCard.addCompany(contact.organization)
 
   // Add photo(s)
-  const photos = Array.isArray(contact.photo) ? contact.photo : contact.photo ? [contact.photo] : []
+  let photos: ContactImage[] = [];
+  if (Array.isArray(contact.photo)) {
+    photos = contact.photo;
+  } else if (contact.photo) {
+    photos = [contact.photo];
+  }
   for (const photo of photos) {
     if (photo.base64) {
       if (photo.base64String && photo.mediaType)
@@ -243,7 +248,12 @@ export function generateVCard(contact: Contact) {
   }
 
   // Add logo(s)
-  const logos = Array.isArray(contact.logo) ? contact.logo : contact.logo ? [contact.logo] : []
+  let logos: ContactImage[] = [];
+  if (Array.isArray(contact.logo)) {
+    logos = contact.logo;
+  } else if (contact.logo) {
+    logos = [contact.logo];
+  }
   for (const logo of logos) {
     if (logo.base64) {
       if (logo.base64String && logo.mediaType)
@@ -266,7 +276,12 @@ export function generateVCard(contact: Contact) {
   if (contact.role) vCard.addRole(contact.role)
 
   // Add phone(s)
-  const phones = Array.isArray(contact.phone) ? contact.phone : contact.phone ? [contact.phone] : [];
+  let phones: (string | ContactPhone)[] = [];
+  if (Array.isArray(contact.phone)) {
+    phones = contact.phone;
+  } else if (contact.phone) {
+    phones = [contact.phone];
+  }
   for (const phone of phones) {
     if (typeof phone === 'string') {
       vCard.addPhoneNumber(phone);
@@ -276,7 +291,12 @@ export function generateVCard(contact: Contact) {
   }
 
   // Add fax(s)
-  const faxes = Array.isArray(contact.fax) ? contact.fax : contact.fax ? [contact.fax] : [];
+  let faxes: (string | ContactFax)[] = [];
+  if (Array.isArray(contact.fax)) {
+    faxes = contact.fax;
+  } else if (contact.fax) {
+    faxes = [contact.fax];
+  }
   for (const fax of faxes) {
     if (typeof fax === 'string') {
       vCard.addPhoneNumber(fax, 'FAX');
@@ -286,7 +306,12 @@ export function generateVCard(contact: Contact) {
   }
 
   // Add email(s)
-  const emails = Array.isArray(contact.email) ? contact.email : contact.email ? [contact.email] : [];
+  let emails: (string | ContactEmail)[] = [];
+  if (Array.isArray(contact.email)) {
+    emails = contact.email;
+  } else if (contact.email) {
+    emails = [contact.email];
+  }
   for (const email of emails) {
     if (typeof email === 'string') {
       vCard.addEmail(email);
@@ -296,7 +321,12 @@ export function generateVCard(contact: Contact) {
   }
 
   // Add url(s)
-  const urls = Array.isArray(contact.url) ? contact.url : contact.url ? [contact.url] : [];
+  let urls: (string | ContactUrl)[] = [];
+  if (Array.isArray(contact.url)) {
+    urls = contact.url;
+  } else if (contact.url) {
+    urls = [contact.url];
+  }
   for (const url of urls) {
     if (typeof url === 'string') {
       vCard.addURL(url);
@@ -306,7 +336,12 @@ export function generateVCard(contact: Contact) {
   }
 
   // Add address(es)
-  const addresses = Array.isArray(contact.address) ? contact.address : contact.address ? [contact.address] : []
+  let addresses: ContactAddress[] = [];
+  if (Array.isArray(contact.address)) {
+    addresses = contact.address;
+  } else if (contact.address) {
+    addresses = [contact.address];
+  }
   for (const address of addresses) {
     vCard.addAddress(
       address.label ?? '',
