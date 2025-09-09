@@ -32,7 +32,7 @@
 <!-- ############################################################################################################## -->
 <!-- ############################################################################################################## -->
 
-<div class="container">
+<div class="flex justify-center items-center h-screen w-screen max-h-screen max-w-screen bg-gray-100">
   <Vcard {contact} />
 </div>
 
@@ -41,11 +41,4 @@
 <!-- ############################################################################################################## -->
 
 <style>
-  .container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    background-color: #f1f1f1;
-  }
 </style>

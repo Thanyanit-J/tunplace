@@ -83,36 +83,59 @@
 <!-- ############################################################################################################## -->
 <!-- ############################################################################################################## -->
 
-<div class="card">
-  {#if contact.photo}
-    {@const photo = Array.isArray(contact.photo) ? contact.photo[0] : contact.photo}
-    {#if photo?.base64}
-      <img src={photo.base64String} alt="" class="profile-image" />
-    {:else if photo?.url}
-      <img src={photo.url} alt="" class="profile-image" />
-    {/if}
-  {/if}
-  {#if contact.firstName}
-    <h2>
-      {contact.firstName}
-      {#if contact.lastName}
-        {contact.lastName}
+<div class="max-w-md mx-auto bg-gray-100 rounded-2xl shadow-lg p-6 m-4">
+  <!-- Profile Section -->
+  <div class="text-center mb-6">
+    {#if contact.photo}
+      {@const photo = Array.isArray(contact.photo) ? contact.photo[0] : contact.photo}
+      {#if photo?.base64 || photo?.url}
+        <img src={photo?.base64String ?? photo?.url} alt="" class="w-24 h-24 rounded-full mb-4 mx-auto object-cover" />
       {/if}
-    </h2>
-  {/if}
-  {#if contact.role}
-    <p>{contact.role}</p>
-  {/if}
-  <button class="download-contact-btn" onclick={onClickDownloadContact}>Download Contact</button>
+    {/if}
+    {#if contact.firstName}
+      <h1 class="text-xl font-semibold text-gray-800 mb-2">
+        {contact.firstName}
+        {#if contact.lastName}
+          {contact.lastName}
+        {/if}
+      </h1>
+    {/if}
+    {#if contact.title}
+      <p class="text-gray-700 mb-4">{contact.title}</p>
+    {/if}
+    <button 
+      class="w-full bg-gray-800 text-white py-3 px-4 rounded-lg font-medium hover:bg-gray-700" 
+      onclick={onClickDownloadContact}
+    >
+      Download Contact
+    </button>
+  </div>
 
-  <div class="info-container">
+  <!-- Links Section -->
+  <div class="space-y-3">
     {#each contactItems as item}
       {@const values = getValue(contact, item.field)}
       {#each values as value, index}
-        <div class="item-container" id="{item.id}-{index}">
-          <img src={item.iconSrc} alt="" class="item-icon" height="25px" />
-          <div class="item-value">{value}</div>
-          <button class="item-copy-btn" onclick={() => onClickCopy(value)}>Copy</button>
+        <div 
+          class="bg-white rounded-lg overflow-hidden relative"
+          id="{item.id}-{index}"
+        >
+          <div class="flex items-center min-h-[64px]">
+            <!-- Icon and Label -->
+            <div class="flex items-center flex-1 min-w-0 p-4 min-h-[64px] hover:bg-gray-300">
+              <img src={item.iconSrc} alt="" class="w-6 h-6 mr-3 flex-shrink-0" />
+              <span class="text-gray-800 truncate">{value}</span>
+            </div>
+            
+            <!-- Copy Button Area - hidden on mobile, extends to edges on desktop -->
+            <button 
+              class="hidden md:flex h-full min-h-[64px] px-4 bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm items-center justify-center"
+              onclick={() => onClickCopy(value)}
+              title="Copy {value}"
+            >
+              Copy
+            </button>
+          </div>
         </div>
       {/each}
     {/each}
@@ -122,89 +145,3 @@
 <!-- ############################################################################################################## -->
 <!-- ############################################################################################################## -->
 <!-- ############################################################################################################## -->
-
-<style>
-  .card {
-    background-color: #f9f9f9;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    text-align: center;
-  }
-
-  .profile-image {
-    border-radius: 50%;
-    height: 100px;
-    width: 100px;
-  }
-
-  .download-contact-btn {
-    background-color: #6200ea;
-    border: none;
-    color: white;
-    padding: 12px 24px;
-    text-align: center;
-    text-decoration: none;
-    font-size: 16px;
-    border-radius: 8px;
-    transition:
-      background-color 0.1s,
-      box-shadow 0.1s;
-    cursor: pointer;
-  }
-
-  .download-contact-btn:hover {
-    background-color: #3700b3;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  }
-
-  .download-contact-btn:active {
-    background-color: #6200ea;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  }
-
-  .info-container {
-    display: grid;
-    gap: 10px;
-    margin: 20px;
-  }
-
-  .item-container {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    gap: 10px;
-    align-content: center;
-    justify-content: center;
-    align-items: center;
-    justify-items: start;
-  }
-
-  .item-icon {
-    width: 25px;
-  }
-
-  .item-value {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .item-copy-btn {
-    background-color: #6200ea;
-    border: none;
-    color: white;
-    padding: 4px 8px;
-    text-align: center;
-    font-size: 12px;
-    border-radius: 4px;
-    transition:
-      background-color 0.1s,
-      box-shadow 0.1s;
-    cursor: pointer;
-  }
-
-  .item-copy-btn:hover {
-    background-color: #3700b3;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  }
-</style>
