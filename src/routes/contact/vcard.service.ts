@@ -103,8 +103,8 @@ export function generateVCard(contact: Contact) {
     if (photo.base64) {
       if (photo.base64String && photo.mediaType)
         vCard.addPhoto(photo.base64String, photo.mediaType)
-    } else if (photo.url) {
-      vCard.addPhotoURL(photo.url)
+    } else if (photo.url && photo.mediaType) {
+      vCard.addPhotoURL(photo.url, photo.mediaType)
     }
   }
 
@@ -119,8 +119,8 @@ export function generateVCard(contact: Contact) {
     if (logo.base64) {
       if (logo.base64String && logo.mediaType)
         vCard.addLogo(logo.base64String, logo.mediaType)
-    } else if (logo.url) {
-      vCard.addLogoURL(logo.url)
+    } else if (logo.url && logo.mediaType) {
+      vCard.addLogoURL(logo.url, logo.mediaType)
     }
   }
 
@@ -204,15 +204,14 @@ export function generateVCard(contact: Contact) {
     addresses = [contact.address];
   }
   for (const address of addresses) {
-    vCard.addAddress(
-      address.label ?? '',
-      '',
-      address.street ?? '',
-      address.city ?? '',
-      address.stateProvince ?? '',
-      address.postalCode ?? '',
-      address.countryRegion ?? ''
-    )
+    vCard.addAddress({
+      type: address.label ?? '',
+      street: address.street ?? '',
+      city: address.city ?? '',
+      state: address.stateProvince ?? '',
+      postal: address.postalCode ?? '',
+      country: address.countryRegion ?? ''
+    })
   }
 
   // Add social media URLs

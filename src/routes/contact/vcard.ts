@@ -10,6 +10,10 @@ export class VCard {
     }
   }
 
+  private sanitizeValue(value: string): string {
+    return value.replace(/;/g, '\\;')
+  }
+
   setVersion(version: VCardVersion) {
     if (version === '2.1' || version === '3.0' || version === '4.0') {
       this.version = version
@@ -19,16 +23,22 @@ export class VCard {
   }
 
   addName(last: string, first: string, middle: string, prefix: string, suffix: string) {
-    this.fields.push(`N:${last};${first};${middle};${prefix};${suffix}`)
-    this.fields.push(`FN:${[prefix, first, middle, last, suffix].filter(Boolean).join(' ')}`)
+    const cleanedLast = this.sanitizeValue(last)
+    const cleanedFirst = this.sanitizeValue(first)
+    const cleanedMiddle = this.sanitizeValue(middle)
+    const cleanedPrefix = this.sanitizeValue(prefix)
+    const cleanedSuffix = this.sanitizeValue(suffix)
+    
+    this.fields.push(`N:${cleanedLast};${cleanedFirst};${cleanedMiddle};${cleanedPrefix};${cleanedSuffix}`)
+    this.fields.push(`FN:${[cleanedPrefix, cleanedFirst, cleanedMiddle, cleanedLast, cleanedSuffix].filter(Boolean).join(' ')}`)
   }
 
   addUID(uid: string) {
-    this.fields.push(`UID:${uid}`)
+    this.fields.push(`UID:${this.sanitizeValue(uid)}`)
   }
 
   addCompany(org: string) {
-    this.fields.push(`ORG:${org}`)
+    this.fields.push(`ORG:${this.sanitizeValue(org)}`)
   }
 
   addPhoto(base64: string, mediaType: string) {
@@ -41,44 +51,46 @@ export class VCard {
     }
   }
 
-  addPhotoURL(url: string) {
-    // Assume JPEG for demonstration, but you may want to pass mediaType
-    const mediaType = 'JPEG'
+  addPhotoURL(url: string, mediaType: string) {
+    const cleanedURL = this.sanitizeValue(url)
     if (this.version === '2.1') {
-      this.fields.push(`PHOTO;${mediaType}:${url}`)
+      this.fields.push(`PHOTO;${mediaType}:${cleanedURL}`)
     } else if (this.version === '3.0') {
-      this.fields.push(`PHOTO;TYPE=${mediaType};VALUE=URI:${url}`)
+      this.fields.push(`PHOTO;TYPE=${mediaType};VALUE=URI:${cleanedURL}`)
     } else if (this.version === '4.0') {
-      this.fields.push(`PHOTO;MEDIATYPE=image/jpeg:${url}`)
+      this.fields.push(`PHOTO;MEDIATYPE=${mediaType}:${cleanedURL}`)
     }
   }
 
   addPhoneNumber(number: string, type?: string) {
-    this.fields.push(`TEL${type ? ';TYPE=' + type : ''}:${number}`)
+    const escapedType = type ? this.sanitizeValue(type) : undefined
+    this.fields.push(`TEL${escapedType ? ';TYPE=' + escapedType : ''}:${this.sanitizeValue(number)}`)
   }
 
   addBirthday(date: string) {
-    this.fields.push(`BDAY:${date}`)
+    this.fields.push(`BDAY:${this.sanitizeValue(date)}`)
   }
 
   addJobtitle(title: string) {
-    this.fields.push(`TITLE:${title}`)
+    this.fields.push(`TITLE:${this.sanitizeValue(title)}`)
   }
 
   addURL(url: string, type?: string) {
-    this.fields.push(`URL${type && this.version !== '2.1' ? ';TYPE=' + type : ''}:${url}`)
+    const escapedType = type ? this.sanitizeValue(type) : undefined
+    this.fields.push(`URL${escapedType && this.version !== '2.1' ? ';TYPE=' + escapedType : ''}:${this.sanitizeValue(url)}`)
   }
 
   addNote(note: string) {
-    this.fields.push(`NOTE:${note}`)
+    this.fields.push(`NOTE:${this.sanitizeValue(note)}`)
   }
 
   addRole(role: string) {
-    this.fields.push(`ROLE:${role}`)
+    this.fields.push(`ROLE:${this.sanitizeValue(role)}`)
   }
 
   addEmail(email: string, type?: string) {
-    this.fields.push(`EMAIL${type ? ';TYPE=' + type : ''}:${email}`)
+    const escapedType = type ? this.sanitizeValue(type) : undefined
+    this.fields.push(`EMAIL${escapedType ? ';TYPE=' + escapedType : ''}:${this.sanitizeValue(email)}`)
   }
 
   addLogo(base64: string, mediaType: string) {
@@ -91,30 +103,38 @@ export class VCard {
     }
   }
 
-  addLogoURL(url: string) {
-    // Assume JPEG for demonstration, but you may want to pass mediaType
-    const mediaType = 'JPEG'
+  addLogoURL(url: string, mediaType: string) {
+    const escapedUrl = this.sanitizeValue(url)
     if (this.version === '2.1') {
-      this.fields.push(`LOGO;${mediaType}:${url}`)
+      this.fields.push(`LOGO;${mediaType}:${escapedUrl}`)
     } else if (this.version === '3.0') {
-      this.fields.push(`LOGO;TYPE=${mediaType};VALUE=URI:${url}`)
+      this.fields.push(`LOGO;TYPE=${mediaType};VALUE=URI:${escapedUrl}`)
     } else if (this.version === '4.0') {
-      this.fields.push(`LOGO;MEDIATYPE=image/jpeg:${url}`)
+      this.fields.push(`LOGO;MEDIATYPE=${mediaType}:${escapedUrl}`)
     }
   }
 
-  addAddress(
-    label?: string,
-    ext?: string,
-    street?: string,
-    city?: string,
-    state?: string,
-    postal?: string,
-    country?: string,
+  addAddress(options: {
+    /** Type/Label of address e.g. HOME, WORK */
     type?: string
-  ) {
+    ext?: string  
+    street?: string
+    city?: string
+    state?: string
+    postal?: string
+    country?: string
+  }) {
+    const { type, ext = '', street = '', city = '', state = '', postal = '', country = '' } = options
+    const escapedExt = this.sanitizeValue(ext)
+    const escapedStreet = this.sanitizeValue(street)
+    const escapedCity = this.sanitizeValue(city)
+    const escapedState = this.sanitizeValue(state)
+    const escapedPostal = this.sanitizeValue(postal)
+    const escapedCountry = this.sanitizeValue(country)
+    const escapedType = type ? this.sanitizeValue(type) : undefined
+    
     this.fields.push(
-      `ADR${type ? ';TYPE=' + type : ''}:$${label};${ext};${street};${city};${state};${postal};${country}`
+      `ADR${escapedType ? ';TYPE=' + escapedType : ''}:${escapedExt};${escapedStreet};${escapedCity};${escapedState};${escapedPostal};${escapedCountry}`
     )
   }
 
