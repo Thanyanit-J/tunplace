@@ -8,7 +8,7 @@
     title: 'Software Developer',
     photo: {
       url: '/images/profile.webp',
-      mediaType: 'image/webp',
+      mediaType: 'WEBP',
       base64: false
     },
     email: [
