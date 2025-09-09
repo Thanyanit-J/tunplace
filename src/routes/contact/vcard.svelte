@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { getDayBasedColor } from '../dayBasedColor'
   import { generateVCard, type Contact } from './vcard.service'
 
   type vCardProps = {
@@ -15,7 +16,7 @@
   function onClickDownloadContact(): void {
     generateVCard(contact)
   }
-  
+
   type ContactItem = {
     field: ContactField
     iconSrc: string
@@ -77,13 +78,14 @@
     return value ? [String(value)] : [];
   }
 
+  let dayColor = $derived(getDayBasedColor());
 </script>
 
 <!-- ############################################################################################################## -->
 <!-- ############################################################################################################## -->
 <!-- ############################################################################################################## -->
 
-<div class="max-w-md mx-auto bg-gray-100 rounded-2xl shadow-lg p-6 m-4">
+<div class="max-w-md mx-auto bg-{dayColor}-100 rounded-2xl shadow-lg p-6 m-4">
   <!-- Profile Section -->
   <div class="text-center mb-6">
     {#if contact.photo}
@@ -104,7 +106,7 @@
       <p class="text-gray-700 mb-4">{contact.title}</p>
     {/if}
     <button 
-      class="w-full bg-gray-800 text-white py-3 px-4 rounded-lg font-medium hover:bg-gray-700" 
+      class="w-full bg-{dayColor}-800 text-white py-3 px-4 rounded-lg font-medium hover:bg-{dayColor}-700 active:bg-{dayColor}-900 touch-manipulation" 
       onclick={onClickDownloadContact}
     >
       Download Contact
@@ -120,16 +122,17 @@
           class="bg-white rounded-lg overflow-hidden relative"
           id="{item.id}-{index}"
         >
-          <div class="flex items-center min-h-[64px]">
+          <div class="flex items-center min-h-16">
             <!-- Icon and Label -->
-            <div class="flex items-center flex-1 min-w-0 p-4 min-h-[64px] hover:bg-gray-300">
+            <div 
+              class="flex items-center flex-1 min-w-0 p-4 min-h-16 hover:bg-{dayColor}-300 active:bg-{dayColor}-400 transition-colors touch-manipulation">
               <img src={item.iconSrc} alt="" class="w-6 h-6 mr-3 flex-shrink-0" />
               <span class="text-gray-800 truncate">{value}</span>
             </div>
             
             <!-- Copy Button Area - hidden on mobile, extends to edges on desktop -->
             <button 
-              class="hidden md:flex h-full min-h-[64px] px-4 bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm items-center justify-center"
+              class="hidden md:flex h-full min-h-16 px-4 bg-{dayColor}-200 hover:bg-{dayColor}-300 active:bg-{dayColor}-400 text-gray-700 text-sm items-center justify-center touch-manipulation"
               onclick={() => onClickCopy(value)}
               title="Copy {value}"
             >

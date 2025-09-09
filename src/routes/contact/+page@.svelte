@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { getDayBasedColor } from '../dayBasedColor'
   import type { Contact } from './vcard.service'
   import Vcard from './vcard.svelte'
 
@@ -26,14 +27,18 @@
       linkedIn: 'https://linkedin.com/in/thanyanit-jon'
     }
   }
+
+  let dayColor = $derived(getDayBasedColor())
 </script>
 
 <!-- ############################################################################################################## -->
 <!-- ############################################################################################################## -->
 <!-- ############################################################################################################## -->
 
-<div class="flex justify-center items-center h-screen w-screen max-h-screen max-w-screen bg-gray-100">
-  <Vcard {contact} />
+<div class="w-screen h-svh bg-{dayColor}-800 overflow-auto">
+  <div class="min-h-full flex justify-center items-center p-4">
+    <Vcard {contact} />
+  </div>
 </div>
 
 <!-- ############################################################################################################## -->
