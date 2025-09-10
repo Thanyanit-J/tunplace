@@ -17,6 +17,71 @@
     generateVCard(contact)
   }
 
+  function getContactHref(value: string, field: ContactField): string {
+    if (field === 'email') {
+      return `mailto:${value}`
+    } else if (field === 'phone') {
+      return `tel:${value}`
+    } else if (field === 'url' || field.includes('socialUrls')) {
+      return value
+    }
+    return '#'
+  }
+
+  function getContactTarget(field: ContactField): string {
+    if (field === 'url' || field.includes('socialUrls')) {
+      return '_blank'
+    }
+    return '_self'
+  }
+
+  // Touch handling for mobile
+  let touchTimeout: ReturnType<typeof setTimeout> | null = null
+  let touchStartTime = 0
+  let isLongPress = false
+
+  function onTouchStart(event: TouchEvent): void {
+    touchStartTime = Date.now()
+    isLongPress = false
+    
+    const isMobile = window.innerWidth < (48 * parseFloat(getComputedStyle(document.documentElement).fontSize)) // md breakpoint 48 rem ≈ 768px
+    if (isMobile) {
+      touchTimeout = setTimeout(() => {
+        isLongPress = true
+        // TODO: Implement long press action here
+        console.log('Long press detected - implement your action here')
+      }, 500)
+    }
+  }
+
+  function onTouchEnd(event: TouchEvent): void {
+    if (touchTimeout) {
+      clearTimeout(touchTimeout)
+      touchTimeout = null
+    }
+
+    // If it was a long press, prevent the <a> tag from triggered
+    if (isLongPress) {
+      event.preventDefault()
+    }
+  }
+
+  function onTouchCancel(event: TouchEvent): void {
+    if (touchTimeout) {
+      clearTimeout(touchTimeout)
+      touchTimeout = null
+    }
+    isLongPress = false
+  }
+
+  /** Prevent right click only during long press; especially when holding the buttons, which counts as right click on touchscreen */
+  function onContextMenu(event: Event) {
+    const isMobile = window.innerWidth < (48 * parseFloat(getComputedStyle(document.documentElement).fontSize)) // md breakpoint 48 rem ≈ 768px
+    if (isMobile && isLongPress) {
+      event.preventDefault()
+    }
+  }
+  
   type ContactItem = {
     field: ContactField
     iconSrc: string
@@ -85,7 +150,7 @@
 <!-- ############################################################################################################## -->
 <!-- ############################################################################################################## -->
 
-<div class="max-w-md mx-auto bg-{dayColor}-100 rounded-2xl shadow-lg p-6 m-4">
+<div class="max-w-svw mx-auto my-4 px-3 py-6 bg-{dayColor}-100 rounded-2xl shadow-lg">
   <!-- Profile Section -->
   <div class="text-center mb-6">
     {#if contact.photo}
@@ -123,12 +188,25 @@
           id="{item.id}-{index}"
         >
           <div class="flex items-center min-h-16">
-            <!-- Icon and Label -->
-            <div 
-              class="flex items-center flex-1 min-w-0 p-4 min-h-16 hover:bg-{dayColor}-300 active:bg-{dayColor}-400 transition-colors touch-manipulation">
-              <img src={item.iconSrc} alt="" class="w-6 h-6 mr-3 flex-shrink-0" />
+            <!-- Icon and Content -->
+            <a 
+              href={getContactHref(value, item.field)}
+              target={getContactTarget(item.field)}
+              class="flex items-center flex-1 min-w-0 p-4 min-h-16 hover:bg-{dayColor}-300 active:bg-{dayColor}-400 transition-colors touch-manipulation no-underline"
+              ontouchstart={onTouchStart}
+              ontouchend={onTouchEnd}
+              ontouchcancel={onTouchCancel}
+              oncontextmenu={onContextMenu}
+            >
+              <img 
+                src={item.iconSrc} 
+                alt="" 
+                class="w-6 h-6 mr-3 flex-shrink-0 pointer-events-none select-none" 
+                draggable="false"
+                oncontextmenu={(e) => e.preventDefault()}
+              />
               <span class="text-gray-800 truncate">{value}</span>
-            </div>
+            </a>
             
             <!-- Copy Button Area - hidden on mobile, extends to edges on desktop -->
             <button 
