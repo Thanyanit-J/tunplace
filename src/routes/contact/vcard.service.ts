@@ -10,6 +10,7 @@ export type ContactAddress = Partial<{
 }>
 
 export type ContactImage = {
+  displayedPhotoUrl?: string  // URL for display on card only (not added to VCF)
   url?: string
   base64String?: string
   mediaType: string

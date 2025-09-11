@@ -155,8 +155,12 @@
   <div class="text-center mb-6">
     {#if contact.photo}
       {@const photo = Array.isArray(contact.photo) ? contact.photo[0] : contact.photo}
-      {#if (photo?.base64 && photo?.base64String) || photo?.url}
-        <img src={photo?.base64 && photo?.base64String ? `data:image/${photo.mediaType.toLowerCase()};base64,${photo.base64String}` : photo?.url} alt="" class="w-24 h-24 rounded-full mb-4 mx-auto object-cover" />
+      {#if photo?.displayedPhotoUrl || (photo?.base64 && photo?.base64String) || photo?.url}
+        <img 
+          src={photo?.displayedPhotoUrl || (photo?.base64 && photo?.base64String ? `data:image/${photo.mediaType.toLowerCase()};base64,${photo.base64String}` : photo?.url)} 
+          alt="" 
+          class="w-24 h-24 rounded-full mb-4 mx-auto object-cover" 
+        />
       {/if}
     {/if}
     {#if contact.firstName}
